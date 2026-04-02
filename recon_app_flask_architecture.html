@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Reconciliation App — Flask Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #161616;
+    --bg3: #1d1d1d;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.14);
+    --text: #e8e6e0;
+    --text-muted: #7a786f;
+    --text-dim: #4a4844;
+    --accent: #c8f97c;
+    --accent2: #5dffd3;
+    --accent3: #ff8c5a;
+    --accent4: #a78bfa;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 80px 40px 120px; }
+
+  /* ── HEADER ── */
+  header {
+    margin-bottom: 72px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  h1 em { font-style: italic; color: var(--accent); }
+
+  .header-desc {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 560px;
+    line-height: 1.8;
+  }
+
+  .header-meta {
+    margin-top: 28px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .meta-pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── SECTION ── */
+  section { margin-bottom: 64px; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: rgba(255,255,255,0.05);
+    padding: 1px 5px;
+    border-radius: 2px;
+    color: var(--accent2);
+  }
+
+  /* ── FEATURE GRID ── */
+  .feat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .feat-card {
+    background: var(--bg2);
+    padding: 24px 26px;
+    transition: background 0.2s;
+  }
+
+  .feat-card:hover { background: var(--bg3); }
+
+  .feat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    font-size: 15px;
+  }
+
+  .feat-card h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: 0.01em;
+  }
+
+  .feat-card p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* ── PIPELINE ── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .pipe-step {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    align-items: start;
+    gap: 20px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    transition: background 0.15s;
+  }
+
+  .pipe-step:last-child { border-bottom: none; }
+  .pipe-step:hover { background: var(--bg3); }
+
+  .pipe-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    padding-top: 3px;
+  }
+
+  .pipe-content h4 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .pipe-content p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .pipe-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    margin-top: 3px;
+    display: inline-block;
+  }
+
+  .tag-green  { background: rgba(200,249,124,0.08); color: var(--accent);  border: 1px solid rgba(200,249,124,0.15); }
+  .tag-teal   { background: rgba(93,255,211,0.08);  color: var(--accent2); border: 1px solid rgba(93,255,211,0.15); }
+  .tag-orange { background: rgba(255,140,90,0.08);  color: var(--accent3); border: 1px solid rgba(255,140,90,0.15); }
+  .tag-purple { background: rgba(167,139,250,0.08); color: var(--accent4); border: 1px solid rgba(167,139,250,0.15); }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight-box {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent);
+    border-radius: 4px;
+    padding: 20px 22px;
+    margin-top: 20px;
+  }
+
+  .hl-icon {
+    font-size: 16px;
+    color: var(--accent);
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .highlight-box h4 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .highlight-box p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* ── ARCH LAYER ── */
+  .arch-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .arch-layer {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .arch-layer:last-child { border-bottom: none; }
+  .arch-layer:hover { background: var(--bg3); }
+
+  .arch-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 18px 20px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+
+  .arch-content {
+    padding: 16px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .arch-chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: var(--bg3);
+  }
+
+  .arch-chip.green  { border-color: rgba(200,249,124,0.2); color: var(--accent);  background: rgba(200,249,124,0.05); }
+  .arch-chip.teal   { border-color: rgba(93,255,211,0.2);  color: var(--accent2); background: rgba(93,255,211,0.05); }
+  .arch-chip.orange { border-color: rgba(255,140,90,0.2);  color: var(--accent3); background: rgba(255,140,90,0.05); }
+  .arch-chip.purple { border-color: rgba(167,139,250,0.2); color: var(--accent4); background: rgba(167,139,250,0.05); }
+
+  /* ── SCHEMA ── */
+  .schema-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .schema-card { background: var(--bg2); padding: 0; }
+
+  .schema-head {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--accent2);
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  .schema-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+
+  .schema-row:last-child { border-bottom: none; }
+  .col-name { font-family: var(--mono); color: var(--text); }
+  .col-type { font-family: var(--mono); color: var(--text-dim); font-size: 10px; }
+
+  /* ── STACK TABLE ── */
+  .stack-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 12px;
+  }
+
+  .stack-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 12px 16px;
+    text-align: left;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stack-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+
+  .stack-table tr:last-child td { border-bottom: none; }
+  .stack-table tr:hover td { background: var(--bg3); }
+
+  .stack-table td:first-child {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  /* ── PAGE GRID ── */
+  .page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .page-card {
+    background: var(--bg2);
+    padding: 24px;
+    transition: background 0.2s;
+  }
+
+  .page-card:hover { background: var(--bg3); }
+
+  .page-num {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .page-card h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .page-card p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .t-pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-dim);
+  }
+
+  /* ── SECURITY GRID ── */
+  .sec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .sec-card {
+    background: var(--bg2);
+    padding: 22px 24px;
+    transition: background 0.2s;
+  }
+
+  .sec-card:hover { background: var(--bg3); }
+
+  .sec-card h3 {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .sec-card p {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .sec-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-bottom: 12px;
+  }
+
+  /* ── VS BOX ── */
+  .vs-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 20px;
+  }
+
+  .vs-col { background: var(--bg2); padding: 20px 22px; }
+
+  .vs-col h4 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .vs-col.flask h4  { color: var(--accent3); }
+  .vs-col.fastapi h4 { color: var(--accent2); }
+
+  .vs-item {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .vs-item:last-child { border-bottom: none; }
+
+  .vs-dot { flex-shrink: 0; margin-top: 7px; width: 4px; height: 4px; border-radius: 50%; }
+  .flask-dot  { background: var(--accent3); }
+  .fastapi-dot { background: var(--accent2); }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="header-eyebrow">Commercial Architecture — Flask Edition</div>
+    <h1>AI Reconciliation App —<br><em>Flask Stack</em></h1>
+    <p class="header-desc">Flask backend · React frontend · PostgreSQL · Redis · Celery. Same features as the FastAPI version, wired manually with Flask's explicit, unopinionated approach.</p>
+    <div class="header-meta">
+      <span class="meta-pill">Flask + React</span>
+      <span class="meta-pill">Multi-tenant</span>
+      <span class="meta-pill">REST + SSE + SocketIO</span>
+      <span class="meta-pill">Production-grade</span>
+    </div>
+  </header>
+
+  <!-- SECTION 1: ARCHITECTURE OVERVIEW -->
+  <section>
+    <div class="section-label">01 — Architecture Overview</div>
+    <h2>Three-tier separation of concerns</h2>
+    <p class="section-subtitle">Frontend, backend, and data layers are fully decoupled and independently deployable</p>
+
+    <div class="arch-stack">
+      <div class="arch-layer">
+        <div class="arch-label">Frontend</div>
+        <div class="arch-content">
+          <span class="arch-chip green">React + Vite</span>
+          <span class="arch-chip green">TanStack Query</span>
+          <span class="arch-chip green">Tailwind CSS</span>
+          <span class="arch-chip green">AG Grid</span>
+          <span class="arch-chip green">Recharts</span>
+          <span class="arch-chip green">shadcn/ui</span>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-label">API Gateway</div>
+        <div class="arch-content">
+          <span class="arch-chip teal">Flask 3.x</span>
+          <span class="arch-chip teal">Flask-RESTful</span>
+          <span class="arch-chip teal">Flask-SocketIO</span>
+          <span class="arch-chip teal">Gunicorn + eventlet</span>
+          <span class="arch-chip teal">Celery workers</span>
+          <span class="arch-chip teal">Redis (broker)</span>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-label">AI Layer</div>
+        <div class="arch-content">
+          <span class="arch-chip purple">Anthropic SDK</span>
+          <span class="arch-chip purple">LangChain</span>
+          <span class="arch-chip purple">Ollama (self-hosted)</span>
+          <span class="arch-chip purple">ChromaDB</span>
+          <span class="arch-chip purple">nomic-embed-text</span>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-label">Data</div>
+        <div class="arch-content">
+          <span class="arch-chip orange">PostgreSQL</span>
+          <span class="arch-chip orange">Flask-SQLAlchemy</span>
+          <span class="arch-chip orange">DuckDB (ephemeral)</span>
+          <span class="arch-chip orange">Redis (cache + sessions)</span>
+          <span class="arch-chip orange">S3 / object store</span>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-label">Infra</div>
+        <div class="arch-content">
+          <span class="arch-chip">Docker Compose</span>
+          <span class="arch-chip">Nginx reverse proxy</span>
+          <span class="arch-chip">GitHub Actions CI/CD</span>
+          <span class="arch-chip">Sentry</span>
+          <span class="arch-chip">Prometheus + Grafana</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <div class="hl-icon">⚑</div>
+      <div>
+        <h4>Key Flask wiring decisions</h4>
+        <p>Flask is synchronous by default — to support streaming Claude responses and real-time recon progress, this stack uses <code>Flask-SocketIO</code> with the <code>eventlet</code> async worker, and Server-Sent Events (SSE) for one-way AI token streaming. Gunicorn must be run with the <code>eventlet</code> worker class (not the default sync worker) for SocketIO to function correctly in production. Pydantic is added manually for request validation — Flask does not include it natively.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: BLUEPRINT STRUCTURE -->
+  <section>
+    <div class="section-label">02 — Blueprint Structure</div>
+    <h2>Flask application factory pattern</h2>
+    <p class="section-subtitle">All routes organised into Blueprints — registered on the app factory at startup</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">FACTORY</div>
+        <div class="pipe-content">
+          <h4>create_app() — Application factory</h4>
+          <p>Initialises Flask extensions (<code>db</code>, <code>migrate</code>, <code>jwt</code>, <code>socketio</code>, <code>limiter</code>, <code>cors</code>) and registers all Blueprints. Config loaded from <code>config.py</code> using environment-based class inheritance — <code>DevelopmentConfig</code>, <code>ProductionConfig</code>. Celery instance created separately and shares the same config.</p>
+        </div>
+        <span class="pipe-tag tag-teal">app/__init__.py</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">AUTH</div>
+        <div class="pipe-content">
+          <h4>Blueprint: /api/auth</h4>
+          <p>Routes: <code>POST /login</code> · <code>POST /refresh</code> · <code>POST /logout</code> · <code>GET /me</code>. JWT managed by <code>Flask-JWT-Extended</code> with access token (15 min) and refresh token (7 days). Tokens set as <code>httpOnly</code> cookies. OAuth2 (Google, Microsoft Entra) handled via <code>Authlib</code>.</p>
+        </div>
+        <span class="pipe-tag tag-orange">flask-jwt-extended</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">CONN</div>
+        <div class="pipe-content">
+          <h4>Blueprint: /api/connections</h4>
+          <p>Routes: <code>GET /</code> · <code>POST /</code> · <code>POST /{id}/test</code> · <code>DELETE /{id}</code>. Connection strings encrypted with <code>cryptography.fernet</code> before storage in PostgreSQL. Decrypted only at query time inside the Celery worker — never returned in API responses.</p>
+        </div>
+        <span class="pipe-tag tag-teal">Fernet encrypted</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">RECON</div>
+        <div class="pipe-content">
+          <h4>Blueprint: /api/runs</h4>
+          <p>Routes: <code>POST /</code> · <code>GET /</code> · <code>GET /{id}</code> · <code>GET /{id}/results</code>. <code>POST /</code> enqueues a Celery task and returns <code>run_id</code> immediately. Results are paginated — large diffs returned in pages of 500 rows via query params. SocketIO emits progress events to the client room keyed on <code>run_id</code>.</p>
+        </div>
+        <span class="pipe-tag tag-green">Celery + SocketIO</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">AI</div>
+        <div class="pipe-content">
+          <h4>Blueprint: /api/runs/{id}/analyse</h4>
+          <p>Routes: <code>POST /analyse</code> · <code>GET /narrative</code> · <code>GET /narrative/stream</code>. The <code>/stream</code> endpoint uses Flask's <code>Response(stream_with_context(generate()))</code> pattern with <code>text/event-stream</code> content type to push Claude tokens to the client as SSE. Final narrative persisted to PostgreSQL.</p>
+        </div>
+        <span class="pipe-tag tag-purple">SSE streaming</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">CHAT</div>
+        <div class="pipe-content">
+          <h4>SocketIO namespace: /chat</h4>
+          <p>Flask-SocketIO handles the RAG chatbot via a dedicated namespace. On <code>message</code> event, the server retrieves context from ChromaDB, runs Ollama inference, and emits token-by-token back to the client via <code>emit('token', ...)</code>. Chat history stored in Redis per session ID with a configurable TTL.</p>
+        </div>
+        <span class="pipe-tag tag-purple">Flask-SocketIO</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">EXPORT</div>
+        <div class="pipe-content">
+          <h4>Blueprint: /api/exports</h4>
+          <p>Routes: <code>POST /runs/{id}/export</code> · <code>GET /exports/{file_id}</code>. Export generation (Excel, PDF, CSV) dispatched as a Celery task. Completed files written to S3 or local object store. A pre-signed download URL with 24-hour expiry is returned. Nightly Celery beat task cleans up expired exports.</p>
+        </div>
+        <span class="pipe-tag tag-teal">S3 + signed URLs</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">ADMIN</div>
+        <div class="pipe-content">
+          <h4>Blueprint: /api/admin</h4>
+          <p>Routes: <code>GET /users</code> · <code>POST /users/invite</code> · <code>PATCH /users/{id}/role</code> · <code>GET /audit-log</code>. Protected by an <code>admin_required</code> decorator that checks the <code>role</code> claim in the JWT. Audit log entries written by a SQLAlchemy event listener on every model write — no manual logging calls needed.</p>
+        </div>
+        <span class="pipe-tag tag-orange">RBAC decorator</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: FRONTEND PAGES -->
+  <section>
+    <div class="section-label">03 — Frontend Pages</div>
+    <h2>React SPA — six core views</h2>
+    <p class="section-subtitle">Identical to the FastAPI version — the frontend is fully framework-agnostic and communicates via JSON REST + SocketIO</p>
+
+    <div class="page-grid">
+      <div class="page-card">
+        <div class="page-num">PAGE 01</div>
+        <h3>Dashboard & Run History</h3>
+        <p>Overview of recent runs, match rate trends, and org-wide stats. Filterable run history table with click-through to any historical run detail.</p>
+        <div class="tag-row">
+          <span class="t-pill">Recharts</span>
+          <span class="t-pill">TanStack Table</span>
+          <span class="t-pill">GET /api/runs</span>
+        </div>
+      </div>
+      <div class="page-card">
+        <div class="page-num">PAGE 02</div>
+        <h3>Connection Manager</h3>
+        <p>Add, test, and manage database connections across Oracle, PostgreSQL, and SQL Server. Credentials masked in UI. Per-org scoping with role-based visibility.</p>
+        <div class="tag-row">
+          <span class="t-pill">React Hook Form</span>
+          <span class="t-pill">Zod</span>
+          <span class="t-pill">POST /api/connections</span>
+        </div>
+      </div>
+      <div class="page-card">
+        <div class="page-num">PAGE 03</div>
+        <h3>Reconciliation Wizard</h3>
+        <p>Step-by-step: select tables → review AI column mappings → configure match keys → run. Real-time progress fed by SocketIO events. Live mismatch counter as rows are processed.</p>
+        <div class="tag-row">
+          <span class="t-pill">socket.io-client</span>
+          <span class="t-pill">AG Grid</span>
+          <span class="t-pill">POST /api/runs</span>
+        </div>
+      </div>
+      <div class="page-card">
+        <div class="page-num">PAGE 04</div>
+        <h3>Run Results & AI Analysis</h3>
+        <p>Full mismatch table with column filters and drill-down. Claude narrative streamed via SSE and rendered as markdown. Category breakdown chart. Export controls for Excel, PDF, CSV.</p>
+        <div class="tag-row">
+          <span class="t-pill">EventSource API</span>
+          <span class="t-pill">react-markdown</span>
+          <span class="t-pill">GET /api/runs/{id}</span>
+        </div>
+      </div>
+      <div class="page-card">
+        <div class="page-num">PAGE 05</div>
+        <h3>RAG Chatbot</h3>
+        <p>Select one or more completed runs and chat with the data. Responses streamed token-by-token via SocketIO. Source citations shown inline. Model selector in sidebar. Chat history persisted per session in Redis.</p>
+        <div class="tag-row">
+          <span class="t-pill">socket.io-client</span>
+          <span class="t-pill">/chat namespace</span>
+          <span class="t-pill">ChromaDB</span>
+        </div>
+      </div>
+      <div class="page-card">
+        <div class="page-num">PAGE 06</div>
+        <h3>Admin & User Management</h3>
+        <p>Invite users, assign roles (admin / analyst / viewer), manage org settings, generate API keys for external integrations. Full audit log with user, timestamp, IP, and action.</p>
+        <div class="tag-row">
+          <span class="t-pill">RBAC</span>
+          <span class="t-pill">GET /api/admin/users</span>
+          <span class="t-pill">Audit log</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: BACKGROUND JOBS -->
+  <section>
+    <div class="section-label">04 — Background Jobs</div>
+    <h2>Celery task queue</h2>
+    <p class="section-subtitle">Redis as broker and result backend · tasks are idempotent and retryable · Celery Beat for scheduled jobs</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">01</div>
+        <div class="pipe-content">
+          <h4>run_reconciliation</h4>
+          <p>Pulls source and target data via SQLAlchemy, runs the DuckDB full-outer-join diff in a sandboxed worker process, categorises mismatches, writes results to PostgreSQL. Emits progress events to the Flask-SocketIO server via Redis pub/sub — the SocketIO server forwards them to the correct client room keyed on <code>run_id</code>.</p>
+        </div>
+        <span class="pipe-tag tag-green">Core job</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">02</div>
+        <div class="pipe-content">
+          <h4>generate_narrative</h4>
+          <p>Serialises mismatch summary, sends to Claude API with a structured prompt. Streams tokens into Redis pub/sub — the SSE endpoint on the Flask server reads from this channel and pushes tokens to the waiting client response. Final narrative persisted to the run record in PostgreSQL.</p>
+        </div>
+        <span class="pipe-tag tag-purple">AI job</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">03</div>
+        <div class="pipe-content">
+          <h4>embed_run</h4>
+          <p>Chunks mismatch details, column mappings, and narrative. Embeds with <code>nomic-embed-text</code> via Ollama. Upserts into ChromaDB with run and org metadata. Checks the <code>rag_index</code> table first — skips embedding entirely if the run was already embedded with the same model version.</p>
+        </div>
+        <span class="pipe-tag tag-purple">RAG prep</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">04</div>
+        <div class="pipe-content">
+          <h4>generate_export</h4>
+          <p>Builds Excel (openpyxl), PDF (reportlab), or CSV from run results. Writes to S3-compatible object store via <code>boto3</code>. Records the file reference in PostgreSQL. Returns a pre-signed URL valid for 24 hours. A nightly Celery Beat task scans and purges expired export records and files.</p>
+        </div>
+        <span class="pipe-tag tag-teal">Export job</span>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">05</div>
+        <div class="pipe-content">
+          <h4>cleanup_exports (scheduled)</h4>
+          <p>Celery Beat cron task running nightly. Queries PostgreSQL for export records past their expiry, deletes the corresponding S3 objects, and removes the database records. Also purges expired Redis chat session keys and stale SocketIO rooms.</p>
+        </div>
+        <span class="pipe-tag tag-orange">Celery Beat</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: MULTI-TENANCY & AUTH -->
+  <section>
+    <div class="section-label">05 — Multi-tenancy & Auth</div>
+    <h2>Organisation-scoped data model</h2>
+    <p class="section-subtitle">Every resource is scoped to an <code>org_id</code> — enforced at the SQLAlchemy model layer via a base query class</p>
+
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(200,249,124,0.08);">🔐</div>
+        <h3>JWT Authentication</h3>
+        <p>Managed by <code>Flask-JWT-Extended</code>. Short-lived access tokens (15 min) and rotating refresh tokens (7 days) set as <code>httpOnly</code> cookies. Token blocklist maintained in Redis for instant revocation across devices.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(93,255,211,0.08);">🏢</div>
+        <h3>Organisation Isolation</h3>
+        <p>A custom SQLAlchemy <code>OrgScopedQuery</code> base class automatically appends <code>WHERE org_id = :current_org</code> to every query. Cross-org access is structurally impossible — not just a policy check.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(167,139,250,0.08);">👥</div>
+        <h3>Role-Based Access Control</h3>
+        <p>Three roles: Admin, Analyst, Viewer. Enforced via custom Flask decorators (<code>@admin_required</code>, <code>@analyst_required</code>) applied directly to route functions — clear and explicit.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(255,140,90,0.08);">🔑</div>
+        <h3>SSO / OAuth2</h3>
+        <p>Google Workspace and Microsoft Entra ID via <code>Authlib</code> Flask integration. User auto-provisioned on first SSO login, mapped to org by email domain. Works alongside standard email/password auth.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(200,249,124,0.08);">📋</div>
+        <h3>Audit Trail</h3>
+        <p>A SQLAlchemy <code>event.listen(after_flush)</code> hook captures all write operations automatically. Writes to an immutable <code>audit_log</code> table with user ID, org ID, timestamp, IP address, and action metadata.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(93,255,211,0.08);">🗝️</div>
+        <h3>API Key Access</h3>
+        <p>Orgs can generate scoped API keys for programmatic access. Keys are bcrypt-hashed before storage and validated against a Flask <code>before_request</code> hook on API key-protected routes. Rate-limited per key via <code>Flask-Limiter</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: DATA MODEL -->
+  <section>
+    <div class="section-label">06 — Data Model</div>
+    <h2>PostgreSQL schema</h2>
+    <p class="section-subtitle">Managed by Flask-Migrate (Alembic under the hood) — all schema changes versioned and reversible</p>
+
+    <div class="schema-grid">
+      <div class="schema-card">
+        <div class="schema-head">organisations</div>
+        <div class="schema-row"><span class="col-name">org_id</span><span class="col-type">UUID PK</span></div>
+        <div class="schema-row"><span class="col-name">name</span><span class="col-type">TEXT</span></div>
+        <div class="schema-row"><span class="col-name">plan</span><span class="col-type">ENUM</span></div>
+        <div class="schema-row"><span class="col-name">sso_domain</span><span class="col-type">TEXT</span></div>
+        <div class="schema-row"><span class="col-name">created_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-head">users</div>
+        <div class="schema-row"><span class="col-name">user_id</span><span class="col-type">UUID PK</span></div>
+        <div class="schema-row"><span class="col-name">org_id</span><span class="col-type">FK → orgs</span></div>
+        <div class="schema-row"><span class="col-name">email</span><span class="col-type">TEXT UNIQUE</span></div>
+        <div class="schema-row"><span class="col-name">role</span><span class="col-type">ENUM</span></div>
+        <div class="schema-row"><span class="col-name">password_hash</span><span class="col-type">TEXT</span></div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-head">db_connections</div>
+        <div class="schema-row"><span class="col-name">conn_id</span><span class="col-type">UUID PK</span></div>
+        <div class="schema-row"><span class="col-name">org_id</span><span class="col-type">FK → orgs</span></div>
+        <div class="schema-row"><span class="col-name">name</span><span class="col-type">TEXT</span></div>
+        <div class="schema-row"><span class="col-name">db_type</span><span class="col-type">ENUM</span></div>
+        <div class="schema-row"><span class="col-name">conn_string_enc</span><span class="col-type">BYTEA</span></div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-head">recon_runs</div>
+        <div class="schema-row"><span class="col-name">run_id</span><span class="col-type">UUID PK</span></div>
+        <div class="schema-row"><span class="col-name">org_id</span><span class="col-type">FK → orgs</span></div>
+        <div class="schema-row"><span class="col-name">user_id</span><span class="col-type">FK → users</span></div>
+        <div class="schema-row"><span class="col-name">status</span><span class="col-type">ENUM</span></div>
+        <div class="schema-row"><span class="col-name">match_rate</span><span class="col-type">FLOAT</span></div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-head">mismatch_details</div>
+        <div class="schema-row"><span class="col-name">id</span><span class="col-type">UUID PK</span></div>
+        <div class="schema-row"><span class="col-name">run_id</span><span class="col-type">FK → runs</span></div>
+        <div class="schema-row"><span class="col-name">row_key</span><span class="col-type">TEXT</span></div>
+        <div class="schema-row"><span class="col-name">column_name</span><span class="col-type">TEXT</span></div>
+        <div class="schema-row"><span class="col-name">category</span><span class="col-type">ENUM</span></div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-head">audit_log</div>
+        <div class="schema-row"><span class="col-name">id</span><span class="col-type">UUID PK</span></div>
+        <div class="schema-row"><span class="col-name">org_id</span><span class="col-type">FK → orgs</span></div>
+        <div class="schema-row"><span class="col-name">user_id</span><span class="col-type">FK → users</span></div>
+        <div class="schema-row"><span class="col-name">action</span><span class="col-type">TEXT</span></div>
+        <div class="schema-row"><span class="col-name">ip_address</span><span class="col-type">INET</span></div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <div class="hl-icon">↗</div>
+      <div>
+        <h4>Flask-Migrate for schema versioning</h4>
+        <p>All schema changes are captured as Alembic migration scripts via <code>flask db migrate</code> and applied with <code>flask db upgrade</code>. Every migration is reviewed before applying to production — no auto-apply in CI. Downgrades are tested for every migration to ensure rollback is always possible.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: FLASK vs FASTAPI TRADEOFFS -->
+  <section>
+    <div class="section-label">07 — Tradeoffs</div>
+    <h2>Flask vs FastAPI — honest comparison</h2>
+    <p class="section-subtitle">For this specific app, both can deliver the same features — the differences are in how much you wire manually</p>
+
+    <div class="vs-box">
+      <div class="vs-col flask">
+        <h4>Flask — what you gain</h4>
+        <div class="vs-item"><div class="vs-dot flask-dot"></div>Mature ecosystem — Flask-SQLAlchemy, Flask-Migrate, Flask-JWT-Extended, Flask-Limiter are battle-tested in production</div>
+        <div class="vs-item"><div class="vs-dot flask-dot"></div>Explicit and readable — every extension is registered visibly; nothing is hidden behind framework magic</div>
+        <div class="vs-item"><div class="vs-dot flask-dot"></div>Flask-SocketIO is the de facto standard for WebSocket in Python web apps</div>
+        <div class="vs-item"><div class="vs-dot flask-dot"></div>Easier to find Flask developers — larger talent pool, more Stack Overflow answers</div>
+        <div class="vs-item"><div class="vs-dot flask-dot"></div>Simpler mental model for teams unfamiliar with async Python</div>
+      </div>
+      <div class="vs-col fastapi">
+        <h4>FastAPI — what you trade away</h4>
+        <div class="vs-item"><div class="vs-dot fastapi-dot"></div>Native async — no eventlet patching required; true async I/O throughout with <code>asyncio</code></div>
+        <div class="vs-item"><div class="vs-dot fastapi-dot"></div>Pydantic v2 built-in — request/response validation is automatic, not bolted on</div>
+        <div class="vs-item"><div class="vs-dot fastapi-dot"></div>Auto-generated OpenAPI docs at <code>/docs</code> — zero extra work</div>
+        <div class="vs-item"><div class="vs-dot fastapi-dot"></div>Dependency injection system — cleaner route guards and shared logic than decorators</div>
+        <div class="vs-item"><div class="vs-dot fastapi-dot"></div>Slightly higher throughput under concurrent load due to true async request handling</div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <div class="hl-icon">★</div>
+      <div>
+        <h4>Recommendation</h4>
+        <p>If your team already knows Flask well, go Flask — the ecosystem is mature enough to deliver every feature in this spec without compromise. If you're starting fresh with no strong preference, FastAPI has a slight edge for an AI-heavy app with streaming and real-time features, because async is native rather than patched in. Either is a legitimate production choice.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8: SECURITY -->
+  <section>
+    <div class="section-label">08 — Security</div>
+    <h2>Production security checklist</h2>
+    <p class="section-subtitle">Same security posture as the FastAPI version — Flask extensions cover every requirement</p>
+
+    <div class="sec-grid">
+      <div class="sec-card">
+        <div class="sec-dot" style="background:var(--accent);"></div>
+        <h3>Credential Encryption</h3>
+        <p>Database connection strings encrypted with Fernet (AES-128-CBC) via the <code>cryptography</code> package before storage. Encryption key loaded from environment only — never stored in the DB.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-dot" style="background:var(--accent2);"></div>
+        <h3>HTTPS Only</h3>
+        <p>Nginx terminates TLS. HSTS enforced. Cookies are <code>Secure</code> + <code>SameSite=Strict</code>. <code>Flask-Talisman</code> sets security headers (CSP, X-Frame-Options, HSTS) automatically.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-dot" style="background:var(--accent3);"></div>
+        <h3>Rate Limiting</h3>
+        <p><code>Flask-Limiter</code> with Redis storage backend. Per-IP limits on auth endpoints (5 req/min). Per-org limits on AI endpoints to control Claude API spend. Custom error responses on limit hit.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-dot" style="background:var(--accent4);"></div>
+        <h3>Input Validation</h3>
+        <p>Pydantic v2 added as a standalone dependency for request body validation. All database queries use SQLAlchemy parameterised statements — no raw string interpolation anywhere in the codebase.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-dot" style="background:var(--accent);"></div>
+        <h3>CORS Policy</h3>
+        <p><code>Flask-CORS</code> configured with an explicit <code>origins</code> allowlist — only the known React frontend origin. No wildcard origins. Credentials allowed only for the whitelisted origin.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-dot" style="background:var(--accent2);"></div>
+        <h3>Secret Management</h3>
+        <p>All secrets (DB URL, Claude API key, Fernet key, JWT secret key) loaded via environment variables or a secrets manager. <code>python-dotenv</code> for local dev — environment injection for production containers.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 9: FULL TECH STACK -->
+  <section>
+    <div class="section-label">09 — Tech Stack</div>
+    <h2>Full dependency manifest</h2>
+    <p class="section-subtitle">Every package is production-tested and Docker-deployable</p>
+
+    <table class="stack-table">
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Package(s)</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Frontend</td><td><code>React 18</code>, <code>Vite</code>, <code>TanStack Query</code>, <code>Zustand</code>, <code>Tailwind CSS</code></td><td>SPA, data fetching, global state, styling</td></tr>
+        <tr><td>UI Components</td><td><code>shadcn/ui</code>, <code>AG Grid Community</code>, <code>Recharts</code></td><td>Component library, data grid, charts</td></tr>
+        <tr><td>API</td><td><code>Flask 3.x</code>, <code>Flask-RESTful</code>, <code>Flask-SocketIO</code>, <code>eventlet</code></td><td>REST API, WebSocket support, async worker</td></tr>
+        <tr><td>Auth</td><td><code>Flask-JWT-Extended</code>, <code>Authlib</code>, <code>Flask-Limiter</code>, <code>Flask-Talisman</code>, <code>Flask-CORS</code></td><td>JWT, OAuth2 SSO, rate limiting, security headers, CORS</td></tr>
+        <tr><td>ORM / DB</td><td><code>Flask-SQLAlchemy</code>, <code>Flask-Migrate</code>, <code>psycopg2-binary</code></td><td>ORM, Alembic migrations, PostgreSQL driver</td></tr>
+        <tr><td>Task Queue</td><td><code>celery</code>, <code>redis</code>, <code>flower</code></td><td>Background jobs, broker + result backend, monitoring UI</td></tr>
+        <tr><td>Source DBs</td><td><code>cx_Oracle</code>, <code>psycopg2-binary</code>, <code>pyodbc</code></td><td>Connect to client Oracle / PG / SQL Server</td></tr>
+        <tr><td>Recon Engine</td><td><code>pandas</code>, <code>duckdb</code>, <code>numpy</code></td><td>DataFrame ops, SQL-style diffs</td></tr>
+        <tr><td>RAG</td><td><code>langchain</code>, <code>langchain-ollama</code>, <code>chromadb</code></td><td>Chunking, retrieval chain, vector store</td></tr>
+        <tr><td>AI</td><td><code>anthropic</code> SDK, <code>ollama</code></td><td>Claude narratives, local LLM chat</td></tr>
+        <tr><td>Validation</td><td><code>pydantic v2</code>, <code>marshmallow</code></td><td>Request body validation, serialisation</td></tr>
+        <tr><td>Security</td><td><code>cryptography</code> (Fernet), <code>bcrypt</code></td><td>Credential encryption, password hashing</td></tr>
+        <tr><td>Export</td><td><code>openpyxl</code>, <code>reportlab</code>, <code>boto3</code></td><td>Excel, PDF generation, S3 file storage</td></tr>
+        <tr><td>Infra</td><td><code>gunicorn</code>, <code>docker</code>, <code>nginx</code>, <code>sentry-sdk</code>, <code>prometheus-flask-exporter</code></td><td>WSGI server, containerisation, proxy, error tracking, metrics</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <p>AI Reconciliation App — Flask Architecture v1.0</p>
+    <p>Flask · React · PostgreSQL · Redis · Celery · Docker</p>
+  </footer>
+
+</div>
+</body>
+</html>

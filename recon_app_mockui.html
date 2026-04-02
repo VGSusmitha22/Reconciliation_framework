@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReconAI — App</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0f0f0f;
+    --bg2:     #161616;
+    --bg3:     #1d1d1d;
+    --bg4:     #242424;
+    --border:  rgba(255,255,255,0.07);
+    --text:    #e8e6e0;
+    --text-muted: #7a786f;
+    --text-dim:   #4a4844;
+    --accent:  #c8f97c;
+    --accent2: #5dffd3;
+    --accent3: #ff8c5a;
+    --accent4: #a78bfa;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+    --sidebar: 220px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; font-weight: 300; overflow-x: hidden; }
+
+  /* ── SHELL ── */
+  .shell { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar);
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-logo {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-mark {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: #0f0f0f;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .logo-text em { font-style: italic; color: var(--accent); }
+
+  .sidebar-nav { padding: 14px 10px; flex: 1; overflow-y: auto; }
+
+  .nav-group-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 8px 10px 4px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: background 0.15s, color 0.15s;
+    margin-bottom: 1px;
+    user-select: none;
+  }
+
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+
+  .nav-item.active {
+    background: rgba(200,249,124,0.08);
+    color: var(--accent);
+    border: 1px solid rgba(200,249,124,0.12);
+  }
+
+  .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+
+  .nav-badge {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 1px 6px;
+    background: rgba(200,249,124,0.1);
+    color: var(--accent);
+    border-radius: 10px;
+    border: 1px solid rgba(200,249,124,0.2);
+  }
+
+  .sidebar-footer {
+    padding: 14px 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .user-pill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .user-pill:hover { background: var(--bg3); }
+
+  .avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent4), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #0f0f0f;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-family: var(--mono); font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ── MAIN ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    height: 52px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    background: var(--bg2);
+  }
+
+  .topbar-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    flex: 1;
+  }
+
+  .topbar-title span { color: var(--text-muted); font-weight: 300; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 14px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0f0f0f;
+    font-weight: 500;
+  }
+
+  .btn-primary:hover { background: #b8e96c; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+  }
+
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); border-color: rgba(255,255,255,0.12); }
+
+  .btn-teal {
+    background: rgba(93,255,211,0.1);
+    color: var(--accent2);
+    border-color: rgba(93,255,211,0.2);
+  }
+  .btn-teal:hover { background: rgba(93,255,211,0.16); }
+
+  /* ── PAGE CONTENT ── */
+  .content { flex: 1; overflow-y: auto; padding: 28px 28px; }
+
+  /* ── PAGES ── */
+  .page-view { display: none; }
+  .page-view.active { display: block; }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    padding: 20px 22px;
+    transition: background 0.15s;
+  }
+
+  .stat-card:hover { background: var(--bg3); }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-value.green { color: var(--accent); }
+  .stat-value.teal  { color: var(--accent2); }
+  .stat-value.orange { color: var(--accent3); }
+  .stat-value.purple { color: var(--accent4); }
+
+  .stat-delta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .stat-delta.up { color: var(--accent); }
+  .stat-delta.down { color: var(--accent3); }
+
+  /* ── SECTION HEADER ── */
+  .sec-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .sec-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  .sec-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 12px;
+    margin-bottom: 24px;
+  }
+
+  .data-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 16px;
+    text-align: left;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .data-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: middle;
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: var(--bg3); }
+  .data-table tbody tr { cursor: pointer; }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .status-pill::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+  }
+
+  .pill-complete  { background: rgba(200,249,124,0.08); color: var(--accent);  border: 1px solid rgba(200,249,124,0.2); }
+  .pill-complete::before  { background: var(--accent); }
+  .pill-running   { background: rgba(93,255,211,0.08);  color: var(--accent2); border: 1px solid rgba(93,255,211,0.2); }
+  .pill-running::before   { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+  .pill-failed    { background: rgba(255,140,90,0.08);  color: var(--accent3); border: 1px solid rgba(255,140,90,0.2); }
+  .pill-failed::before    { background: var(--accent3); }
+  .pill-pending   { background: rgba(74,72,68,0.3);     color: var(--text-dim); border: 1px solid var(--border); }
+  .pill-pending::before   { background: var(--text-dim); }
+
+  .match-bar-wrap { display: flex; align-items: center; gap: 10px; }
+  .match-bar { flex: 1; height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; max-width: 80px; }
+  .match-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+  .match-fill.med { background: var(--accent2); }
+  .match-fill.low { background: var(--accent3); }
+
+  /* ── CHART PLACEHOLDER ── */
+  .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+  .chart-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+  }
+
+  .chart-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .mini-chart { height: 80px; display: flex; align-items: flex-end; gap: 5px; }
+  .bar { border-radius: 2px 2px 0 0; flex: 1; transition: opacity 0.2s; }
+  .bar:hover { opacity: 0.8; }
+
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+  .donut svg { transform: rotate(-90deg); }
+  .donut-legend { flex: 1; }
+  .donut-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 11px; color: var(--text-muted); }
+  .donut-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── WIZARD STEPS ── */
+  .wizard-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 28px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .wizard-step {
+    flex: 1;
+    padding: 14px 16px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .wizard-step:last-child { border-right: none; }
+  .wizard-step:hover { background: var(--bg3); }
+
+  .wizard-step.done { background: rgba(200,249,124,0.04); }
+  .wizard-step.active { background: rgba(200,249,124,0.07); border-bottom: 2px solid var(--accent); }
+
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .wizard-step.done .step-num { background: var(--accent); border-color: var(--accent); color: #0f0f0f; }
+  .wizard-step.active .step-num { border-color: var(--accent); color: var(--accent); }
+
+  .step-label { font-size: 12px; color: var(--text-muted); }
+  .wizard-step.active .step-label { color: var(--accent); }
+  .wizard-step.done .step-label { color: var(--text-muted); }
+
+  /* ── FORM ELEMENTS ── */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+
+  .form-select, .form-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 300;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    appearance: none;
+  }
+
+  .form-select:focus, .form-input:focus { border-color: rgba(200,249,124,0.3); }
+  .form-select option { background: var(--bg3); }
+
+  /* ── MAPPING TABLE ── */
+  .mapping-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+
+  .mapping-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 14px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .mapping-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .mapping-table tr:last-child td { border-bottom: none; }
+  .mapping-table tbody tr:hover td { background: var(--bg3); }
+
+  .conf-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 2px;
+  }
+
+  .conf-high { background: rgba(200,249,124,0.1); color: var(--accent); border: 1px solid rgba(200,249,124,0.2); }
+  .conf-med  { background: rgba(93,255,211,0.1);  color: var(--accent2); border: 1px solid rgba(93,255,211,0.2); }
+  .conf-low  { background: rgba(255,140,90,0.1);  color: var(--accent3); border: 1px solid rgba(255,140,90,0.2); }
+
+  .ai-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent4);
+    background: rgba(167,139,250,0.08);
+    border: 1px solid rgba(167,139,250,0.15);
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin-left: 6px;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 22px;
+    margin-bottom: 20px;
+  }
+
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .progress-title { font-size: 13px; color: var(--text); }
+  .progress-pct { font-family: var(--mono); font-size: 18px; color: var(--accent); }
+
+  .progress-track { height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+  .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.3s; }
+
+  .progress-meta { display: flex; gap: 24px; }
+  .progress-meta-item { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+  .progress-meta-item span { color: var(--text-muted); }
+
+  /* ── RESULT GRID ── */
+  .result-grid { display: grid; grid-template-columns: 1fr 280px; gap: 16px; margin-bottom: 20px; }
+
+  .mismatch-filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+
+  .filter-chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .filter-chip:hover { border-color: rgba(255,255,255,0.15); color: var(--text-muted); }
+  .filter-chip.active-chip { border-color: rgba(200,249,124,0.25); color: var(--accent); background: rgba(200,249,124,0.06); }
+
+  .side-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+  }
+
+  .side-panel-title {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+
+  .breakdown-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .breakdown-label { font-size: 11px; color: var(--text-muted); flex: 1; }
+  .breakdown-bar-wrap { width: 60px; height: 3px; background: var(--bg4); border-radius: 2px; overflow: hidden; }
+  .breakdown-fill { height: 100%; border-radius: 2px; }
+  .breakdown-count { font-family: var(--mono); font-size: 10px; color: var(--text-dim); width: 28px; text-align: right; }
+
+  /* ── NARRATIVE ── */
+  .narrative-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent);
+    border-radius: 4px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  .narrative-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .narrative-header h4 { font-size: 13px; font-weight: 500; color: var(--text); }
+  .ai-label { font-family: var(--mono); font-size: 9px; color: var(--accent4); background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.15); padding: 2px 7px; border-radius: 2px; }
+
+  /* ── CHAT ── */
+  .chat-layout { display: grid; grid-template-columns: 260px 1fr; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; height: 520px; }
+
+  .chat-sidebar {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-sidebar-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .run-select-list { flex: 1; overflow-y: auto; padding: 8px; }
+
+  .run-select-item {
+    padding: 10px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    margin-bottom: 2px;
+    transition: all 0.15s;
+  }
+
+  .run-select-item:hover { background: var(--bg3); }
+  .run-select-item.selected { background: rgba(200,249,124,0.06); border-color: rgba(200,249,124,0.15); }
+
+  .run-select-id { font-family: var(--mono); font-size: 10px; color: var(--accent); }
+  .run-select-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  .model-select-wrap {
+    padding: 10px 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .chat-main { display: flex; flex-direction: column; background: var(--bg); }
+
+  .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  .msg { display: flex; gap: 12px; max-width: 100%; }
+  .msg.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  .msg-avatar.ai { background: rgba(200,249,124,0.15); color: var(--accent); border: 1px solid rgba(200,249,124,0.2); }
+  .msg-avatar.user-av { background: linear-gradient(135deg, var(--accent4), var(--accent2)); color: #0f0f0f; }
+
+  .msg-bubble {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 480px;
+  }
+
+  .msg.user .msg-bubble { background: rgba(200,249,124,0.06); border-color: rgba(200,249,124,0.12); color: var(--text); }
+
+  .msg-source {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .source-chip {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: var(--accent4);
+  }
+
+  .chat-input-wrap {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--bg2);
+  }
+
+  .chat-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 300;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .chat-input:focus { border-color: rgba(200,249,124,0.25); }
+  .chat-input::placeholder { color: var(--text-dim); }
+
+  /* ── CONNECTION CARDS ── */
+  .conn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 20px; }
+
+  .conn-card { background: var(--bg2); padding: 20px 22px; transition: background 0.15s; cursor: pointer; }
+  .conn-card:hover { background: var(--bg3); }
+
+  .conn-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .conn-type-badge { font-family: var(--mono); font-size: 9px; padding: 2px 7px; border-radius: 2px; }
+  .oracle-badge { background: rgba(255,140,90,0.1); color: var(--accent3); border: 1px solid rgba(255,140,90,0.2); }
+  .pg-badge { background: rgba(93,255,211,0.1); color: var(--accent2); border: 1px solid rgba(93,255,211,0.2); }
+  .sql-badge { background: rgba(167,139,250,0.1); color: var(--accent4); border: 1px solid rgba(167,139,250,0.2); }
+
+  .conn-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .conn-meta { font-size: 11px; color: var(--text-dim); margin-bottom: 14px; font-family: var(--mono); }
+  .conn-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+  .conn-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .conn-dot.ok { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .conn-dot.err { background: var(--accent3); }
+
+  /* ── ADMIN TABLE ── */
+  .role-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 2px;
+  }
+
+  .role-admin  { background: rgba(167,139,250,0.1); color: var(--accent4); border: 1px solid rgba(167,139,250,0.2); }
+  .role-analyst { background: rgba(93,255,211,0.1); color: var(--accent2); border: 1px solid rgba(93,255,211,0.2); }
+  .role-viewer { background: rgba(74,72,68,0.3); color: var(--text-dim); border: 1px solid var(--border); }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight-box {
+    display: flex; gap: 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+
+  .hl-icon { color: var(--accent); flex-shrink: 0; padding-top: 2px; }
+  .highlight-box h4 { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .highlight-box p { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .pulse { animation: pulse 1.8s ease-in-out infinite; }
+
+  @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .page-view.active { animation: slideIn 0.2s ease; }
+
+  .col-code { font-family: var(--mono); font-size: 11px; color: var(--accent2); }
+  .col-muted { color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">R↗</div>
+      <div class="logo-text">Recon<em>AI</em></div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="nav-icon">▦</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('connections')">
+        <span class="nav-icon">⇌</span> Connections
+      </div>
+
+      <div class="nav-group-label" style="margin-top:12px;">Reconciliation</div>
+      <div class="nav-item" onclick="showPage('wizard')">
+        <span class="nav-icon">◈</span> New Run
+      </div>
+      <div class="nav-item" onclick="showPage('results')">
+        <span class="nav-icon">≋</span> Results
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-item" onclick="showPage('analysis')">
+        <span class="nav-icon">✦</span> AI Analysis
+      </div>
+
+      <div class="nav-group-label" style="margin-top:12px;">Intelligence</div>
+      <div class="nav-item" onclick="showPage('chat')">
+        <span class="nav-icon">◎</span> RAG Chatbot
+      </div>
+
+      <div class="nav-group-label" style="margin-top:12px;">Admin</div>
+      <div class="nav-item" onclick="showPage('admin')">
+        <span class="nav-icon">⊙</span> Users & Roles
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar">AO</div>
+        <div class="user-info">
+          <div class="user-name">Adaeze Okonkwo</div>
+          <div class="user-role">Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar" id="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard <span>/ Overview</span></div>
+      <button class="btn btn-ghost" style="font-size:11px;">↓ Export</button>
+      <button class="btn btn-primary" onclick="showPage('wizard')">+ New Run</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ════════════════════════════════ PAGE: DASHBOARD ═══ -->
+      <div class="page-view active" id="page-dashboard">
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total Runs</div>
+            <div class="stat-value">247</div>
+            <div class="stat-delta up">↑ 18 this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Match Rate</div>
+            <div class="stat-value green">94.2%</div>
+            <div class="stat-delta up">↑ 1.3% vs last month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Open Mismatches</div>
+            <div class="stat-value orange">1,847</div>
+            <div class="stat-delta down">↑ 204 since yesterday</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Active Connections</div>
+            <div class="stat-value teal">6</div>
+            <div class="stat-delta">3 Oracle · 2 PG · 1 MSSQL</div>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-box">
+            <div class="chart-label">Match Rate — Last 14 Days</div>
+            <div class="mini-chart">
+              <div class="bar" style="height:60%;background:rgba(200,249,124,0.3);"></div>
+              <div class="bar" style="height:72%;background:rgba(200,249,124,0.35);"></div>
+              <div class="bar" style="height:65%;background:rgba(200,249,124,0.3);"></div>
+              <div class="bar" style="height:80%;background:rgba(200,249,124,0.4);"></div>
+              <div class="bar" style="height:74%;background:rgba(200,249,124,0.35);"></div>
+              <div class="bar" style="height:88%;background:rgba(200,249,124,0.45);"></div>
+              <div class="bar" style="height:82%;background:rgba(200,249,124,0.4);"></div>
+              <div class="bar" style="height:91%;background:rgba(200,249,124,0.5);"></div>
+              <div class="bar" style="height:87%;background:rgba(200,249,124,0.45);"></div>
+              <div class="bar" style="height:93%;background:rgba(200,249,124,0.55);"></div>
+              <div class="bar" style="height:89%;background:rgba(200,249,124,0.5);"></div>
+              <div class="bar" style="height:95%;background:rgba(200,249,124,0.6);"></div>
+              <div class="bar" style="height:92%;background:rgba(200,249,124,0.55);"></div>
+              <div class="bar" style="height:94%;background:var(--accent);"></div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-label">Mismatch Categories</div>
+            <div class="donut-wrap">
+              <div class="donut">
+                <svg viewBox="0 0 36 36" width="80" height="80">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#242424" stroke-width="3.8"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#c8f97c" stroke-width="3.8" stroke-dasharray="42 58" stroke-dashoffset="0"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#5dffd3" stroke-width="3.8" stroke-dasharray="28 72" stroke-dashoffset="-42"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ff8c5a" stroke-width="3.8" stroke-dasharray="18 82" stroke-dashoffset="-70"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#a78bfa" stroke-width="3.8" stroke-dasharray="12 88" stroke-dashoffset="-88"/>
+                </svg>
+              </div>
+              <div class="donut-legend">
+                <div class="donut-item"><div class="donut-dot" style="background:var(--accent);"></div>Value diff <span style="margin-left:auto;font-family:var(--mono);font-size:10px;">42%</span></div>
+                <div class="donut-item"><div class="donut-dot" style="background:var(--accent2);"></div>Missing rows <span style="margin-left:auto;font-family:var(--mono);font-size:10px;">28%</span></div>
+                <div class="donut-item"><div class="donut-dot" style="background:var(--accent3);"></div>Format <span style="margin-left:auto;font-family:var(--mono);font-size:10px;">18%</span></div>
+                <div class="donut-item"><div class="donut-dot" style="background:var(--accent4);"></div>Null <span style="margin-left:auto;font-family:var(--mono);font-size:10px;">12%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-header">
+          <div>
+            <div class="sec-title">Recent Runs</div>
+            <div class="sec-sub">Last 7 reconciliation runs across all connections</div>
+          </div>
+          <button class="btn btn-ghost">View all</button>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Run ID</th>
+              <th>Source → Target</th>
+              <th>Triggered by</th>
+              <th>Match Rate</th>
+              <th>Mismatches</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="showPage('results')">
+              <td class="col-code">RUN-0247</td>
+              <td>ORDERS_SRC → ORDERS_TGT</td>
+              <td>A. Okonkwo</td>
+              <td><div class="match-bar-wrap"><div class="match-bar"><div class="match-fill" style="width:97%"></div></div>97.1%</div></td>
+              <td>143</td>
+              <td><span class="status-pill pill-complete">Complete</span></td>
+              <td class="col-muted">2 min ago</td>
+            </tr>
+            <tr onclick="showPage('results')">
+              <td class="col-code">RUN-0246</td>
+              <td>INVOICES → INV_ARCHIVE</td>
+              <td>J. Mensah</td>
+              <td><div class="match-bar-wrap"><div class="match-bar"><div class="match-fill pulse" style="width:61%"></div></div><span class="pulse" style="color:var(--accent2);font-family:var(--mono);font-size:11px;">61%</span></div></td>
+              <td>—</td>
+              <td><span class="status-pill pill-running">Running</span></td>
+              <td class="col-muted">8 min ago</td>
+            </tr>
+            <tr onclick="showPage('results')">
+              <td class="col-code">RUN-0245</td>
+              <td>GL_ENTRIES → GL_BACKUP</td>
+              <td>A. Okonkwo</td>
+              <td><div class="match-bar-wrap"><div class="match-bar"><div class="match-fill" style="width:99%"></div></div>99.4%</div></td>
+              <td>32</td>
+              <td><span class="status-pill pill-complete">Complete</span></td>
+              <td class="col-muted">1 hr ago</td>
+            </tr>
+            <tr onclick="showPage('results')">
+              <td class="col-code">RUN-0244</td>
+              <td>CUSTOMERS → CRM_EXPORT</td>
+              <td>T. Asante</td>
+              <td><div class="match-bar-wrap"><div class="match-bar"><div class="match-fill low" style="width:71%"></div></div>71.3%</div></td>
+              <td>2,104</td>
+              <td><span class="status-pill pill-failed">Failed</span></td>
+              <td class="col-muted">3 hrs ago</td>
+            </tr>
+            <tr onclick="showPage('results')">
+              <td class="col-code">RUN-0243</td>
+              <td>PAYMENTS → PAY_LEDGER</td>
+              <td>J. Mensah</td>
+              <td><div class="match-bar-wrap"><div class="match-bar"><div class="match-fill med" style="width:88%"></div></div>88.7%</div></td>
+              <td>691</td>
+              <td><span class="status-pill pill-complete">Complete</span></td>
+              <td class="col-muted">5 hrs ago</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ════════════════════════════════ PAGE: CONNECTIONS ═══ -->
+      <div class="page-view" id="page-connections">
+        <div class="highlight-box">
+          <div class="hl-icon">⇌</div>
+          <div>
+            <h4>Connection credentials are encrypted at rest</h4>
+            <p>All connection strings are encrypted with Fernet (AES-128-CBC) before storage. Credentials are never returned in API responses — only connection metadata is displayed.</p>
+          </div>
+        </div>
+
+        <div class="sec-header">
+          <div>
+            <div class="sec-title">Database Connections</div>
+            <div class="sec-sub">6 active connections across 3 environments</div>
+          </div>
+          <button class="btn btn-primary">+ Add Connection</button>
+        </div>
+
+        <div class="conn-grid">
+          <div class="conn-card">
+            <div class="conn-head">
+              <span class="conn-type-badge oracle-badge">Oracle</span>
+            </div>
+            <div class="conn-name">PROD_FINANCIALS</div>
+            <div class="conn-meta">fin-db-01.internal · port 1521</div>
+            <div class="conn-status"><div class="conn-dot ok"></div>Connected · tested 4 min ago</div>
+          </div>
+          <div class="conn-card">
+            <div class="conn-head">
+              <span class="conn-type-badge oracle-badge">Oracle</span>
+            </div>
+            <div class="conn-name">DR_FINANCIALS</div>
+            <div class="conn-meta">fin-db-dr.internal · port 1521</div>
+            <div class="conn-status"><div class="conn-dot ok"></div>Connected · tested 4 min ago</div>
+          </div>
+          <div class="conn-card">
+            <div class="conn-head">
+              <span class="conn-type-badge pg-badge">PostgreSQL</span>
+            </div>
+            <div class="conn-name">DWH_PROD</div>
+            <div class="conn-meta">dwh.rds.internal · port 5432</div>
+            <div class="conn-status"><div class="conn-dot ok"></div>Connected · tested 12 min ago</div>
+          </div>
+          <div class="conn-card">
+            <div class="conn-head">
+              <span class="conn-type-badge pg-badge">PostgreSQL</span>
+            </div>
+            <div class="conn-name">DWH_STAGING</div>
+            <div class="conn-meta">dwh-stg.rds.internal · port 5432</div>
+            <div class="conn-status"><div class="conn-dot ok"></div>Connected · tested 12 min ago</div>
+          </div>
+          <div class="conn-card">
+            <div class="conn-head">
+              <span class="conn-type-badge sql-badge">SQL Server</span>
+            </div>
+            <div class="conn-name">LEGACY_ERP</div>
+            <div class="conn-meta">erp-mssql.internal · port 1433</div>
+            <div class="conn-status"><div class="conn-dot ok"></div>Connected · tested 1 hr ago</div>
+          </div>
+          <div class="conn-card">
+            <div class="conn-head">
+              <span class="conn-type-badge oracle-badge">Oracle</span>
+            </div>
+            <div class="conn-name">GL_BACKUP</div>
+            <div class="conn-meta">gl-backup.internal · port 1521</div>
+            <div class="conn-status"><div class="conn-dot err"></div>Connection error · retry</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ PAGE: WIZARD ═══ -->
+      <div class="page-view" id="page-wizard">
+
+        <div class="wizard-steps">
+          <div class="wizard-step done">
+            <div class="step-num">✓</div>
+            <div class="step-label">Select Tables</div>
+          </div>
+          <div class="wizard-step active">
+            <div class="step-num">2</div>
+            <div class="step-label">Column Mapping</div>
+          </div>
+          <div class="wizard-step">
+            <div class="step-num">3</div>
+            <div class="step-label">Match Keys</div>
+          </div>
+          <div class="wizard-step">
+            <div class="step-num">4</div>
+            <div class="step-label">Run</div>
+          </div>
+        </div>
+
+        <div class="chart-box" style="margin-bottom:20px;">
+          <div style="display:flex;gap:16px;margin-bottom:16px;">
+            <div class="form-group" style="flex:1;">
+              <div class="form-label">Source Connection</div>
+              <select class="form-select">
+                <option>PROD_FINANCIALS (Oracle)</option>
+                <option>DWH_PROD (PostgreSQL)</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1;">
+              <div class="form-label">Source Table</div>
+              <select class="form-select">
+                <option>FINANCIALS.ORDERS_SRC</option>
+                <option>FINANCIALS.INVOICES</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1;">
+              <div class="form-label">Target Connection</div>
+              <select class="form-select">
+                <option>DWH_PROD (PostgreSQL)</option>
+                <option>DR_FINANCIALS (Oracle)</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1;">
+              <div class="form-label">Target Table</div>
+              <select class="form-select">
+                <option>public.orders_tgt</option>
+                <option>public.orders_archive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-header">
+          <div>
+            <div class="sec-title">Column Mapping <span class="ai-tag">AI suggested</span></div>
+            <div class="sec-sub">Review and adjust AI-suggested column mappings before proceeding</div>
+          </div>
+          <button class="btn btn-teal">↺ Re-suggest with AI</button>
+        </div>
+
+        <table class="mapping-table">
+          <thead>
+            <tr>
+              <th>Source Column</th>
+              <th>Target Column</th>
+              <th>Confidence</th>
+              <th>Type Match</th>
+              <th>Use as Key</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-code">ORDER_ID</td>
+              <td class="col-code">order_id</td>
+              <td><span class="conf-badge conf-high">99%</span></td>
+              <td><span style="color:var(--accent);font-size:12px;">NUMBER → BIGINT ✓</span></td>
+              <td><input type="checkbox" checked style="accent-color:var(--accent);"></td>
+            </tr>
+            <tr>
+              <td class="col-code">ORDER_DATE</td>
+              <td class="col-code">order_created_at</td>
+              <td><span class="conf-badge conf-high">94%</span></td>
+              <td><span style="color:var(--accent);font-size:12px;">DATE → TIMESTAMPTZ ✓</span></td>
+              <td><input type="checkbox" style="accent-color:var(--accent);"></td>
+            </tr>
+            <tr>
+              <td class="col-code">CUST_NO</td>
+              <td class="col-code">customer_id</td>
+              <td><span class="conf-badge conf-med">81%</span></td>
+              <td><span style="color:var(--accent2);font-size:12px;">VARCHAR → TEXT ✓</span></td>
+              <td><input type="checkbox" style="accent-color:var(--accent);"></td>
+            </tr>
+            <tr>
+              <td class="col-code">ORD_AMT</td>
+              <td class="col-code">total_amount</td>
+              <td><span class="conf-badge conf-med">87%</span></td>
+              <td><span style="color:var(--accent2);font-size:12px;">NUMBER(12,2) → NUMERIC ✓</span></td>
+              <td><input type="checkbox" style="accent-color:var(--accent);"></td>
+            </tr>
+            <tr>
+              <td class="col-code">STATUS_CD</td>
+              <td class="col-code">order_status</td>
+              <td><span class="conf-badge conf-low">63%</span></td>
+              <td><span style="color:var(--accent3);font-size:12px;">CHAR(2) → VARCHAR ⚠</span></td>
+              <td><input type="checkbox" style="accent-color:var(--accent);"></td>
+            </tr>
+            <tr>
+              <td class="col-code">CREATED_BY</td>
+              <td class="col-code">created_by_user</td>
+              <td><span class="conf-badge conf-high">91%</span></td>
+              <td><span style="color:var(--accent);font-size:12px;">VARCHAR → TEXT ✓</span></td>
+              <td><input type="checkbox" style="accent-color:var(--accent);"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button class="btn btn-ghost">← Back</button>
+          <button class="btn btn-primary" onclick="showPage('results')">Save & Continue →</button>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ PAGE: RESULTS ═══ -->
+      <div class="page-view" id="page-results">
+
+        <div class="progress-box">
+          <div class="progress-header">
+            <div class="progress-title">RUN-0247 · ORDERS_SRC → ORDERS_TGT</div>
+            <div class="progress-pct">97.1%</div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width:97.1%"></div>
+          </div>
+          <div class="progress-meta">
+            <div class="progress-meta-item">Rows processed <span>48,302 / 48,302</span></div>
+            <div class="progress-meta-item">Matched <span>46,932</span></div>
+            <div class="progress-meta-item">Mismatches <span style="color:var(--accent3);">143</span></div>
+            <div class="progress-meta-item">Only in source <span>18</span></div>
+            <div class="progress-meta-item">Only in target <span>9</span></div>
+            <div class="progress-meta-item">Runtime <span>00:01:42</span></div>
+          </div>
+        </div>
+
+        <div class="result-grid">
+          <div>
+            <div class="mismatch-filters">
+              <div class="filter-chip active-chip">All (143)</div>
+              <div class="filter-chip">Value diff (82)</div>
+              <div class="filter-chip">Format (31)</div>
+              <div class="filter-chip">Null (19)</div>
+              <div class="filter-chip">Missing (11)</div>
+            </div>
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Row Key</th>
+                  <th>Column</th>
+                  <th>Source Value</th>
+                  <th>Target Value</th>
+                  <th>Category</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="col-code">ORD-10042</td>
+                  <td class="col-code">total_amount</td>
+                  <td style="color:var(--accent);">1,204.50</td>
+                  <td style="color:var(--accent3);">1,240.50</td>
+                  <td><span class="status-pill pill-failed" style="font-size:9px;">Value diff</span></td>
+                </tr>
+                <tr>
+                  <td class="col-code">ORD-10089</td>
+                  <td class="col-code">order_status</td>
+                  <td style="color:var(--accent);">CL</td>
+                  <td style="color:var(--accent3);">CLOSED</td>
+                  <td><span class="status-pill pill-running" style="font-size:9px;">Format</span></td>
+                </tr>
+                <tr>
+                  <td class="col-code">ORD-10103</td>
+                  <td class="col-code">created_by_user</td>
+                  <td style="color:var(--accent);">JMENSAH</td>
+                  <td style="color:var(--accent3);">NULL</td>
+                  <td><span class="status-pill pill-pending" style="font-size:9px;">Null</span></td>
+                </tr>
+                <tr>
+                  <td class="col-code">ORD-10218</td>
+                  <td class="col-code">total_amount</td>
+                  <td style="color:var(--accent);">890.00</td>
+                  <td style="color:var(--accent3);">89.00</td>
+                  <td><span class="status-pill pill-failed" style="font-size:9px;">Value diff</span></td>
+                </tr>
+                <tr>
+                  <td class="col-code">ORD-10301</td>
+                  <td class="col-code">order_created_at</td>
+                  <td style="color:var(--accent);">2024-03-01</td>
+                  <td style="color:var(--accent3);">2024-03-10</td>
+                  <td><span class="status-pill pill-failed" style="font-size:9px;">Value diff</span></td>
+                </tr>
+                <tr>
+                  <td class="col-code">ORD-10444</td>
+                  <td class="col-code">—</td>
+                  <td style="color:var(--accent);">exists</td>
+                  <td style="color:var(--accent3);">missing</td>
+                  <td><span class="status-pill pill-pending" style="font-size:9px;">Missing</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="side-panel">
+            <div class="side-panel-title">Category Breakdown</div>
+            <div class="breakdown-item">
+              <div class="breakdown-label">Value diff</div>
+              <div class="breakdown-bar-wrap"><div class="breakdown-fill" style="width:57%;background:var(--accent);height:100%;border-radius:2px;"></div></div>
+              <div class="breakdown-count">82</div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-label">Format</div>
+              <div class="breakdown-bar-wrap"><div class="breakdown-fill" style="width:38%;background:var(--accent2);height:100%;border-radius:2px;"></div></div>
+              <div class="breakdown-count">31</div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-label">Null</div>
+              <div class="breakdown-bar-wrap"><div class="breakdown-fill" style="width:25%;background:var(--accent4);height:100%;border-radius:2px;"></div></div>
+              <div class="breakdown-count">19</div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-label">Missing</div>
+              <div class="breakdown-bar-wrap"><div class="breakdown-fill" style="width:14%;background:var(--accent3);height:100%;border-radius:2px;"></div></div>
+              <div class="breakdown-count">11</div>
+            </div>
+
+            <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
+            <div class="side-panel-title">Export</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-ghost" style="justify-content:flex-start;">↓ Excel (.xlsx)</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;">↓ PDF Report</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;">↓ CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ PAGE: AI ANALYSIS ═══ -->
+      <div class="page-view" id="page-analysis">
+
+        <div class="sec-header">
+          <div>
+            <div class="sec-title">AI Analysis <span class="ai-tag">Claude API</span></div>
+            <div class="sec-sub">RUN-0247 · ORDERS_SRC → ORDERS_TGT · Generated 2 min ago</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost">↺ Regenerate</button>
+            <button class="btn btn-teal">↓ Export PDF</button>
+          </div>
+        </div>
+
+        <div class="narrative-box">
+          <div class="narrative-header">
+            <h4>Mismatch Summary</h4>
+            <span class="ai-label">Claude</span>
+          </div>
+          The reconciliation of <strong style="color:var(--text);">ORDERS_SRC</strong> against <strong style="color:var(--text);">ORDERS_TGT</strong> processed 48,302 rows and achieved a match rate of 97.1%, leaving 143 mismatches requiring attention across four categories.
+          <br><br>
+          The dominant issue is <strong style="color:var(--accent3);">value discrepancies in the <code style="font-family:var(--mono);font-size:11px;color:var(--accent2);">total_amount</code> column (57 occurrences)</strong>, where amounts differ by small decimal offsets suggesting a rounding rule difference between the Oracle source and PostgreSQL target — likely caused by differing currency precision settings (NUMBER(12,2) vs NUMERIC default scale).
+          <br><br>
+          A secondary pattern of <strong style="color:var(--accent3);">30 format mismatches in <code style="font-family:var(--mono);font-size:11px;color:var(--accent2);">order_status</code></strong> reflects the use of two-character codes in the source (e.g. <code style="font-family:var(--mono);font-size:11px;color:var(--accent2);">CL</code>, <code style="font-family:var(--mono);font-size:11px;color:var(--accent2);">OP</code>) against full-word values in the target (<code style="font-family:var(--mono);font-size:11px;color:var(--accent2);">CLOSED</code>, <code style="font-family:var(--mono);font-size:11px;color:var(--accent2);">OPEN</code>). This is a systematic transformation gap — a lookup table or ETL mapping step is missing.
+          <br><br>
+          Recommended actions: (1) Align NUMERIC precision settings across both databases. (2) Implement a status code translation layer in the ETL pipeline. (3) Investigate the 11 source-only rows — these may represent orders created after the target snapshot was taken.
+        </div>
+
+        <div class="chart-box" style="margin-bottom:16px;">
+          <div class="chart-label">Column-level mismatch distribution</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+            <div style="display:flex;align-items:center;gap:12px;font-size:12px;">
+              <span class="col-code" style="width:140px;">total_amount</span>
+              <div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;"><div style="width:57%;height:100%;background:var(--accent3);border-radius:3px;"></div></div>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);width:30px;text-align:right;">57</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;font-size:12px;">
+              <span class="col-code" style="width:140px;">order_status</span>
+              <div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;"><div style="width:30%;height:100%;background:var(--accent2);border-radius:3px;"></div></div>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);width:30px;text-align:right;">30</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;font-size:12px;">
+              <span class="col-code" style="width:140px;">created_by_user</span>
+              <div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;"><div style="width:19%;height:100%;background:var(--accent4);border-radius:3px;"></div></div>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);width:30px;text-align:right;">19</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;font-size:12px;">
+              <span class="col-code" style="width:140px;">order_created_at</span>
+              <div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;"><div style="width:11%;height:100%;background:var(--accent);border-radius:3px;"></div></div>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);width:30px;text-align:right;">11</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ PAGE: CHAT ═══ -->
+      <div class="page-view" id="page-chat">
+        <div class="sec-header" style="margin-bottom:16px;">
+          <div>
+            <div class="sec-title">RAG Chatbot <span class="ai-tag">Ollama · llama3.1:8b</span></div>
+            <div class="sec-sub">Select runs to query, then ask questions about your reconciliation data</div>
+          </div>
+        </div>
+
+        <div class="chat-layout">
+          <!-- Chat Sidebar -->
+          <div class="chat-sidebar">
+            <div class="chat-sidebar-header">Select Runs</div>
+            <div class="run-select-list">
+              <div class="run-select-item selected">
+                <div class="run-select-id">RUN-0247</div>
+                <div class="run-select-meta">ORDERS_SRC → ORDERS_TGT</div>
+                <div class="run-select-meta" style="color:var(--accent);margin-top:2px;">97.1% · 143 mismatches</div>
+              </div>
+              <div class="run-select-item selected">
+                <div class="run-select-id">RUN-0245</div>
+                <div class="run-select-meta">GL_ENTRIES → GL_BACKUP</div>
+                <div class="run-select-meta" style="color:var(--accent);margin-top:2px;">99.4% · 32 mismatches</div>
+              </div>
+              <div class="run-select-item">
+                <div class="run-select-id">RUN-0243</div>
+                <div class="run-select-meta">PAYMENTS → PAY_LEDGER</div>
+                <div class="run-select-meta" style="margin-top:2px;">88.7% · 691 mismatches</div>
+              </div>
+              <div class="run-select-item">
+                <div class="run-select-id">RUN-0241</div>
+                <div class="run-select-meta">INVOICES → INV_ARCHIVE</div>
+                <div class="run-select-meta" style="margin-top:2px;">92.1% · 284 mismatches</div>
+              </div>
+            </div>
+            <div class="model-select-wrap">
+              <div class="form-label" style="margin-bottom:6px;">Model</div>
+              <select class="form-select" style="font-size:11px;">
+                <option>llama3.1:8b (local)</option>
+                <option>mistral:7b (local)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Chat Main -->
+          <div class="chat-main">
+            <div class="chat-messages">
+              <div class="msg">
+                <div class="msg-avatar ai">AI</div>
+                <div>
+                  <div class="msg-bubble">
+                    I've indexed 2 runs (RUN-0247 and RUN-0245) and I'm ready to answer questions about your reconciliation data. You can ask me about specific mismatches, column patterns, trends, or comparisons between runs.
+                  </div>
+                </div>
+              </div>
+              <div class="msg user">
+                <div class="msg-avatar user-av">AO</div>
+                <div>
+                  <div class="msg-bubble">Which columns had the most mismatches in RUN-0247?</div>
+                </div>
+              </div>
+              <div class="msg">
+                <div class="msg-avatar ai">AI</div>
+                <div>
+                  <div class="msg-bubble">
+                    In RUN-0247, the top mismatch columns were: <strong style="color:var(--text);">total_amount</strong> (57 mismatches, mostly decimal rounding differences), <strong style="color:var(--text);">order_status</strong> (30 mismatches, code vs full-word format differences), <strong style="color:var(--text);">created_by_user</strong> (19 null values in target), and <strong style="color:var(--text);">order_created_at</strong> (11 date discrepancies). The total_amount pattern is the most significant and suggests a precision mismatch between Oracle NUMBER(12,2) and the PostgreSQL NUMERIC type.
+                  </div>
+                  <div class="msg-source">
+                    Sources: <span class="source-chip">RUN-0247 · mismatch_details</span> <span class="source-chip">RUN-0247 · ai_narrative</span>
+                  </div>
+                </div>
+              </div>
+              <div class="msg user">
+                <div class="msg-avatar user-av">AO</div>
+                <div>
+                  <div class="msg-bubble">Compare the match rates between RUN-0247 and RUN-0245</div>
+                </div>
+              </div>
+              <div class="msg">
+                <div class="msg-avatar ai">AI</div>
+                <div>
+                  <div class="msg-bubble">
+                    RUN-0245 (GL_ENTRIES → GL_BACKUP) achieved a 99.4% match rate with only 32 mismatches across 5,481 rows — significantly cleaner than RUN-0247's 97.1% on 48,302 rows. The GL run's mismatches were mostly minor rounding differences in amount fields. The ORDERS run has a more complex mismatch profile driven by the status code format gap and the scale of the dataset.
+                  </div>
+                  <div class="msg-source">
+                    Sources: <span class="source-chip">RUN-0247 · mismatch_details</span> <span class="source-chip">RUN-0245 · mismatch_details</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-wrap">
+              <input class="chat-input" type="text" placeholder="Ask a question about your reconciliation data…">
+              <button class="btn btn-primary">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════ PAGE: ADMIN ═══ -->
+      <div class="page-view" id="page-admin">
+
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">12</div>
+            <div class="stat-delta">Across 1 organisation</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Admins</div>
+            <div class="stat-value purple">2</div>
+            <div class="stat-delta">Full access</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">API Keys Active</div>
+            <div class="stat-value teal">3</div>
+            <div class="stat-delta">2 scoped · 1 full-read</div>
+          </div>
+        </div>
+
+        <div class="sec-header">
+          <div>
+            <div class="sec-title">Users & Roles</div>
+            <div class="sec-sub">Manage access for your organisation</div>
+          </div>
+          <button class="btn btn-primary">+ Invite User</button>
+        </div>
+
+        <table class="data-table" style="margin-bottom:24px;">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Auth</th>
+              <th>Last Active</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar" style="width:22px;height:22px;font-size:9px;">AO</div> Adaeze Okonkwo</div></td>
+              <td class="col-code">a.okonkwo@corp.io</td>
+              <td><span class="role-badge role-admin">Admin</span></td>
+              <td style="font-family:var(--mono);font-size:10px;color:var(--text-dim);">SSO</td>
+              <td class="col-muted">Now</td>
+              <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;">Edit</button></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar" style="width:22px;height:22px;font-size:9px;background:linear-gradient(135deg,var(--accent3),var(--accent4));">JM</div> James Mensah</div></td>
+              <td class="col-code">j.mensah@corp.io</td>
+              <td><span class="role-badge role-analyst">Analyst</span></td>
+              <td style="font-family:var(--mono);font-size:10px;color:var(--text-dim);">SSO</td>
+              <td class="col-muted">8 min ago</td>
+              <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;">Edit</button></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar" style="width:22px;height:22px;font-size:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0f0f0f;">TA</div> Tawia Asante</div></td>
+              <td class="col-code">t.asante@corp.io</td>
+              <td><span class="role-badge role-analyst">Analyst</span></td>
+              <td style="font-family:var(--mono);font-size:10px;color:var(--text-dim);">Password</td>
+              <td class="col-muted">3 hrs ago</td>
+              <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;">Edit</button></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar" style="width:22px;height:22px;font-size:9px;background:var(--bg4);color:var(--text-dim);">EO</div> Emeka Osei</div></td>
+              <td class="col-code">e.osei@corp.io</td>
+              <td><span class="role-badge role-viewer">Viewer</span></td>
+              <td style="font-family:var(--mono);font-size:10px;color:var(--text-dim);">SSO</td>
+              <td class="col-muted">Yesterday</td>
+              <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;">Edit</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="sec-header">
+          <div>
+            <div class="sec-title">Audit Log</div>
+            <div class="sec-sub">Immutable record of all write operations</div>
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Resource</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-code" style="white-space:nowrap;">2024-03-14 09:42:11</td>
+              <td>A. Okonkwo</td>
+              <td style="color:var(--accent);">run.created</td>
+              <td class="col-code">RUN-0247</td>
+              <td class="col-muted">10.0.1.42</td>
+            </tr>
+            <tr>
+              <td class="col-code" style="white-space:nowrap;">2024-03-14 09:38:04</td>
+              <td>J. Mensah</td>
+              <td style="color:var(--accent2);">export.downloaded</td>
+              <td class="col-code">RUN-0246 · xlsx</td>
+              <td class="col-muted">10.0.1.55</td>
+            </tr>
+            <tr>
+              <td class="col-code" style="white-space:nowrap;">2024-03-14 08:11:50</td>
+              <td>A. Okonkwo</td>
+              <td style="color:var(--accent4);">connection.created</td>
+              <td class="col-code">GL_BACKUP</td>
+              <td class="col-muted">10.0.1.42</td>
+            </tr>
+            <tr>
+              <td class="col-code" style="white-space:nowrap;">2024-03-14 07:55:22</td>
+              <td>T. Asante</td>
+              <td style="color:var(--accent3);">run.failed</td>
+              <td class="col-code">RUN-0244</td>
+              <td class="col-muted">10.0.1.78</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+  const pages = {
+    dashboard:   { title: 'Dashboard', sub: '/ Overview',      topRight: '<button class="btn btn-ghost" style="font-size:11px;">↓ Export</button><button class="btn btn-primary" onclick="showPage(\'wizard\')">+ New Run</button>' },
+    connections: { title: 'Connections', sub: '/ Database Connections', topRight: '<button class="btn btn-primary">+ Add Connection</button>' },
+    wizard:      { title: 'New Run', sub: '/ Reconciliation Wizard', topRight: '<button class="btn btn-ghost">Save Draft</button>' },
+    results:     { title: 'Results', sub: '/ RUN-0247',        topRight: '<button class="btn btn-ghost">↓ Export</button><button class="btn btn-teal" onclick="showPage(\'analysis\')">View AI Analysis →</button>' },
+    analysis:    { title: 'AI Analysis', sub: '/ RUN-0247',    topRight: '<button class="btn btn-ghost">↺ Regenerate</button><button class="btn btn-teal">↓ Export PDF</button>' },
+    chat:        { title: 'RAG Chatbot', sub: '/ Intelligence', topRight: '<button class="btn btn-ghost">Clear History</button>' },
+    admin:       { title: 'Users & Roles', sub: '/ Admin',     topRight: '<button class="btn btn-primary">+ Invite User</button>' },
+  };
+
+  function showPage(id) {
+    document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    document.getElementById('page-' + id).classList.add('active');
+
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) {
+        n.classList.add('active');
+      }
+    });
+
+    const p = pages[id];
+    if (p) {
+      document.getElementById('topbar-title').innerHTML = p.title + ' <span>' + p.sub + '</span>';
+      const btns = document.getElementById('topbar');
+      // clear existing buttons
+      const existing = btns.querySelectorAll('.btn');
+      existing.forEach(b => b.remove());
+      btns.insertAdjacentHTML('beforeend', p.topRight);
+    }
+  }
+</script>
+
+</body>
+</html>

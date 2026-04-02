@@ -1,0 +1,15 @@
+Flask>=3.0
+flask-cors
+flask-sqlalchemy
+oracledb
+psycopg2-binary
+pandas
+duckdb
+numpy
+anthropic
+openpyxl
+python-dotenv
+cryptography
+requests
+pytest
+sentry-sdk
